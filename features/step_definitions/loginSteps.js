@@ -2,32 +2,40 @@ const {Given, When, Then, Before, After, DataTable} = require ('@cucumber/cucumb
 const {Builder, By, until} = require('selenium-webdriver');
 const assert = require('assert');
 
-let driver;
 Before(async function() {
-    driver = await new Builder().forBrowser('chrome').build();
+    this.driver = await new Builder().forBrowser('chrome').build();
 });
 
 After(async function() {
-    await driver.quit();
+    await this.driver.quit();
 });
 
 Given('que esteja na pagina de login', async function() {
-    await driver.manage().window().maximize();
-    await driver.get('http://localhost:4000/');
+    await this.driver.manage().window().maximize();
+    await this.driver.get('http://localhost:4000/');
 });
 
-When('realizo login com as seguintes credenciais', async function(dataTable){
-    const data = dataTable.rowsHash();
+When('realizo login com as seguintes credenciais', async function(DataTable){
+    const data = DataTable.rowsHash();
     const usuario = data.usuario;
     const senha = data.senha;
 
-    await driver.findElement(By.id('username')).sendKeys(usuario);
-    await driver.findElement(By.id('senha')).sendKeys(senha);
-    await driver.findElement(By.xpath('//*[@id="login-section"]/button')).click();
+    await this.driver.findElement(By.id('username')).sendKeys(usuario);
+    await this.driver.findElement(By.id('senha')).sendKeys(senha);
+    await this.driver.findElement(By.xpath('//*[@id="login-section"]/button')).click();
 });
 
 Then('sou redirecionado para pagina inicial', async function () {
-    const titulo = await driver.findElement(By.xpath('//*[@id="app-section"]/div[1]/div/h4'), 10000).getText();
+    //const titulo = await driver.findElement(By.xpath('//*[@id="app-section"]/div[1]/div/h4'), 10000).getText();
 
+    //assert.strictEqual('Realizar Transferência', titulo);
+    const xpath = '//*[@id="app-section"]/div[1]/div/h4';
+    await this.driver.wait(until.elementLocated(By.xpath(xpath)), 10000);
+    await this.driver.wait(async () => {
+    const text = await this.driver.findElement(By.xpath(xpath)).getText();
+    return text === 'Realizar Transferência';
+    }, 10000);
+
+    const titulo = await this.driver.findElement(By.xpath(xpath)).getText();
     assert.strictEqual('Realizar Transferência', titulo);
 });
